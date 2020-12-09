@@ -14,8 +14,8 @@ s3_resource = boto3.resource('s3')
 
 src_bucket_name     = 'cg-rd'
 level_one_folder    = 'output/'
-target_file_name    = 'list.txt'
-# target_file_name    = 'list_test.txt'
+# target_file_name    = 'list.txt'
+target_file_name    = 'list_test.txt'
 array_target_run = []
 dict_subfolder_target_run = defaultdict(list)
 
@@ -60,21 +60,25 @@ def retrive_filter_copy_files(dict_subfolder_target_run):
     # RE-MATCH "*.hardclipped.bam.prediction_result.vcf"
     pattern3 = re.compile(r"[a-zA-Z0-9\t ./,<>?;:\"'`!@#$%^&*()\[\]{}_+=|\\-]+\.hardclipped\.bam\.prediction_result\.vcf$")
 
-    for k, v in dict_subfolder_target_run.items():
-        for subfolder in v:
-            prefix = level_one_folder + k + '/' + subfolder + '/' # THE ENDING `/` IS A MUST!!
+    ind = 0
+    for key, value in dict_subfolder_target_run.items():
+        for subfolder in value:
+            prefix = level_one_folder + key + '/' + subfolder + '/' # THE ENDING `/` IS A MUST!!
             response = s3_client.list_objects(Bucket    = src_bucket_name,
                                               Prefix    = prefix,
                                               Delimiter ='/')
 
             for kk in response["Contents"]:
                 file_name = kk["Key"].split('/')[-1]
+
                 match = bool(re.match(pattern, file_name))
                 match2 = bool(re.match(pattern2, file_name))
                 match3 = bool(re.match(pattern3, file_name))
 
-                if match or match2 or match3:
-                    copy_new_bucket(k, subfolder, file_name)
+                if (match or match2 or match3) and "primers" not in file_name and file_name[0:2] == subfolder[0:2] and (file_name.find(subfolder.split('_')[-1]) != -1):
+                    ind += 1
+                    print(str(ind) + " : " + file_name)
+                    copy_new_bucket(key, subfolder, file_name)
 
 def canexia_worker():
     # read target list, and put file names into an array
