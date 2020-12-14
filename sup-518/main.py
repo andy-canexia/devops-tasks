@@ -14,8 +14,8 @@ s3_resource = boto3.resource('s3')
 
 src_bucket_name     = 'cg-rd'
 level_one_folder    = 'output/'
-# target_file_name    = 'list.txt'
-target_file_name    = 'list_test.txt'
+target_file_name    = 'list.txt'
+# target_file_name    = 'list_test.txt'
 array_target_run = []
 dict_subfolder_target_run = defaultdict(list)
 
@@ -59,6 +59,8 @@ def retrive_filter_copy_files(dict_subfolder_target_run):
     pattern2 = re.compile(r"[a-zA-Z0-9\t ./,<>?;:\"'`!@#$%^&*()\[\]{}_+=|\\-]+\.hardclipped\.bam$")
     # RE-MATCH "*.hardclipped.bam.prediction_result.vcf"
     pattern3 = re.compile(r"[a-zA-Z0-9\t ./,<>?;:\"'`!@#$%^&*()\[\]{}_+=|\\-]+\.hardclipped\.bam\.prediction_result\.vcf$")
+    # https://contextualgenomics.atlassian.net/browse/SUP-549
+    pattern4 = re.compile(r"[a-zA-Z0-9\t ./,<>?;:\"'`!@#$%^&*()\[\]{}_+=|\\-]+\.hardclipped\.bam\.prediction_result\.vcf\.snpeff\.vcf$")
 
     ind = 0
     for key, value in dict_subfolder_target_run.items():
@@ -74,8 +76,9 @@ def retrive_filter_copy_files(dict_subfolder_target_run):
                 match = bool(re.match(pattern, file_name))
                 match2 = bool(re.match(pattern2, file_name))
                 match3 = bool(re.match(pattern3, file_name))
+                match4 = bool(re.match(pattern4, file_name))
 
-                if (match or match2 or match3) and "primers" not in file_name and file_name[0:2] == subfolder[0:2] and (file_name.find(subfolder.split('_')[-1]) != -1):
+                if (match or match2 or match3 or match4) and "primers" not in file_name and file_name[0:2] == subfolder[0:2] and (file_name.find(subfolder.split('_')[-1]) != -1):
                     ind += 1
                     print(str(ind) + " : " + file_name)
                     copy_new_bucket(key, subfolder, file_name)
